@@ -28,7 +28,17 @@
 - ClawHub：[技能与插件目录](https://clawhub.ai) · [ClawHub 源码仓库](https://github.com/openclaw/clawhub)
 - 与我们有关的公开技术讨论：[PR #328](https://github.com/Tencent/openclaw-weixin/pull/328) · [PR #331](https://github.com/Tencent/openclaw-weixin/pull/331) · [PR #335](https://github.com/Tencent/openclaw-weixin/pull/335)
 
-更多具体 ClawHub 条目、OpenClaw 开发文档和第三方组件的核验结果，集中见 [references.md](docs/references.md)。**“官方渠道插件”“ClawHub 技能”“第三方框架”“自有补丁”不混为一谈。**
+### 可直接打开的 ClawHub、技术文档与社区入口
+
+- ClawHub 连接指导：[manifoldor / Wechat Connect](https://clawhub.ai/manifoldor/skills/wechat) · [lanlan314 / 微信连接](https://clawhub.ai/lanlan314/skills/wechat)
+- ClawHub 行为补丁型 skill：[引用上下文](https://clawhub.ai/yechang1450/skills/weixin-quote) · [20 秒连发合并](https://clawhub.ai/yechang1450/skills/weixin-debounce20s)（均为第三方，未审计当前版本适配）
+- 公众号/小程序方向：[Weixin API 手册](https://clawhub.ai/zhangifonly/skills/weixin) · [Baoyu Post To Wechat](https://clawhub.ai/jimliu/skills/baoyu-post-to-wechat)（不是个人微信渠道插件）
+- 腾讯插件：[开发指南](https://github.com/Tencent/openclaw-weixin/blob/main/docs/development_zh_CN.md) · [CI 指南](https://github.com/Tencent/openclaw-weixin/blob/main/docs/ci_zh_CN.md) · [引用缓存](https://github.com/Tencent/openclaw-weixin/blob/main/docs/quote-cache_zh_CN.md) · [CHANGELOG](https://github.com/Tencent/openclaw-weixin/blob/main/CHANGELOG.md)
+- OpenClaw：[插件开发](https://github.com/openclaw/openclaw/blob/main/docs/tools/plugin.md) · [Skills 机制](https://github.com/openclaw/openclaw/blob/main/docs/tools/skills.md)
+- 第三方开发参考：[corespeed-io/wechatbot](https://github.com/corespeed-io/wechatbot) · [the-yex/wechat-ilink-sdk](https://github.com/the-yex/wechat-ilink-sdk)（非腾讯官方）
+- 社区帖子：[微信通知偶发失败](https://www.v2ex.com/t/1211178) · [不同 Agent 配置讨论](https://global.v2ex.co/t/1200122)（社区经验，不是修复验证）
+
+完整核验结果与局限集中见 [references.md](docs/references.md)。**“官方渠道插件”“ClawHub 技能”“第三方框架”“自有补丁”不混为一谈。**
 
 ## 本次找回与澄清
 

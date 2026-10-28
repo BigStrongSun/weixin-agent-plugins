@@ -1,0 +1,137 @@
+{
+  "checkedAt": "2026-10-28",
+  "scope": "Registry metadata and selected public documentation; no installation, publishing, or messaging",
+  "officialPackages": [
+    {
+      "name": "@tencent-weixin/openclaw-weixin",
+      "version": "2.4.10",
+      "url": "https://www.npmjs.com/package/@tencent-weixin/openclaw-weixin",
+      "verification": "npm metadata and upstream README"
+    },
+    {
+      "name": "@tencent-weixin/openclaw-weixin-cli",
+      "version": "2.1.4",
+      "url": "https://www.npmjs.com/package/@tencent-weixin/openclaw-weixin-cli",
+      "verification": "npm metadata; installer package, not the channel runtime"
+    }
+  ],
+  "clawhubSkills": [
+    {
+      "owner": "manifoldor",
+      "slug": "wechat",
+      "url": "https://clawhub.ai/manifoldor/skills/wechat",
+      "kind": "connection guidance",
+      "registryVerified": true,
+      "httpStatus": 200,
+      "official": false
+    },
+    {
+      "owner": "lanlan314",
+      "slug": "wechat",
+      "url": "https://clawhub.ai/lanlan314/skills/wechat",
+      "kind": "connection guidance",
+      "registryVerified": true,
+      "bodyIndependentlyFetched": false,
+      "official": false
+    },
+    {
+      "owner": "yechang1450",
+      "slug": "weixin-quote",
+      "url": "https://clawhub.ai/yechang1450/skills/weixin-quote",
+      "kind": "quote-context local patch guidance",
+      "registryVerified": true,
+      "pageFetch": "timeout",
+      "codeAudited": false
+    },
+    {
+      "owner": "yechang1450",
+      "slug": "weixin-debounce20s",
+      "url": "https://clawhub.ai/yechang1450/skills/weixin-debounce20s",
+      "kind": "20-second message debounce local patch guidance",
+      "registryVerified": true,
+      "codeAudited": false,
+      "official": false
+    },
+    {
+      "owner": "zhangifonly",
+      "slug": "weixin",
+      "url": "https://clawhub.ai/zhangifonly/skills/weixin",
+      "kind": "official-account and mini-program API handbook; not personal iLink bot",
+      "registryVerified": true,
+      "pageFetch": "timeout"
+    },
+    {
+      "owner": "jimliu",
+      "slug": "baoyu-post-to-wechat",
+      "url": "https://clawhub.ai/jimliu/skills/baoyu-post-to-wechat",
+      "kind": "official-account publishing",
+      "registryVerified": true,
+      "official": false
+    }
+  ],
+  "communityCodePlugin": {
+    "publisher": "newfuture",
+    "package": "openclaw-wechat",
+    "version": "3.3.1",
+    "family": "code-plugin",
+    "channel": "community",
+    "runtimeId": "openclaw-weixin",
+    "isOfficial": false,
+    "registryVerified": true,
+    "permalink": null,
+    "sourceUrl": null,
+    "npmLookupStatus": 404
+  },
+  "thirdPartySDKs": [
+    {
+      "repository": "https://github.com/corespeed-io/wechatbot",
+      "npmUrl": "https://www.npmjs.com/package/@wechatbot/wechatbot",
+      "npmVersion": "2.2.0",
+      "verification": "GitHub, README, npm metadata",
+      "tested": false,
+      "official": false
+    },
+    {
+      "repository": "https://github.com/the-yex/wechat-ilink-sdk",
+      "verification": "GitHub and README",
+      "officialEndorsementFound": false,
+      "tested": false
+    }
+  ],
+  "communityDiscussions": [
+    {
+      "url": "https://www.v2ex.com/t/1211178",
+      "title": "OpenClaw 微信消息通知偶发失败",
+      "httpStatus": 200,
+      "bodyRead": true,
+      "rootCauseProven": false
+    },
+    {
+      "url": "https://global.v2ex.co/t/1200122",
+      "title": "微信官方 openclaw 插件配置不同 agent 的方法",
+      "classification": "community configuration reference; not verified as official/current-version procedure"
+    }
+  ],
+  "selfPublishedClawhub": {
+    "owner": "BigStrongSun",
+    "found": false,
+    "searches": [
+      "skills search BigStrongSun",
+      "skills search selfheal",
+      "web search site:clawhub.ai BigStrongSun"
+    ],
+    "conclusion": "not found in this audit; not proof of never having published"
+  },
+  "officialDocumentPathsVerified": [
+    "https://github.com/Tencent/openclaw-weixin/blob/main/docs/development_zh_CN.md",
+    "https://github.com/Tencent/openclaw-weixin/blob/main/docs/ci_zh_CN.md",
+    "https://github.com/Tencent/openclaw-weixin/blob/main/docs/quote-cache_zh_CN.md",
+    "https://github.com/Tencent/openclaw-weixin/blob/main/CHANGELOG.md"
+  ],
+  "limitations": [
+    "No security audit of third-party skills/plugins",
+    "Some pages timed out; registry verification is not body verification",
+    "Client omission of context_token does not prove server acceptance",
+    "Searches do not exhaust private history, all branches, or all external posts"
+  ]
+}

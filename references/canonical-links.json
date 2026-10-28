@@ -1,0 +1,84 @@
+[
+  {
+    "kind": "repository",
+    "url": "https://github.com/openclaw/openclaw",
+    "status": "verified",
+    "defaultBranch": "main",
+    "license": "MIT License"
+  },
+  {
+    "kind": "repository",
+    "url": "https://github.com/openclaw/clawhub",
+    "status": "verified",
+    "defaultBranch": "main",
+    "license": "MIT License"
+  },
+  {
+    "kind": "repository",
+    "url": "https://github.com/Tencent/openclaw-weixin",
+    "status": "verified",
+    "defaultBranch": "main",
+    "license": "Other"
+  },
+  {
+    "kind": "repository",
+    "url": "https://github.com/BigStrongSun/openclaw-weixin-session-selfheal",
+    "status": "verified",
+    "defaultBranch": "main",
+    "license": "MIT License"
+  },
+  {
+    "kind": "document",
+    "url": "https://github.com/Tencent/openclaw-weixin/blob/main/docs/protocol.md",
+    "status": "verified",
+    "sha": "26662a266e8561d22189c6ffadd45d36da535c74"
+  },
+  {
+    "kind": "document",
+    "url": "https://github.com/Tencent/openclaw-weixin/blob/main/docs/protocol_zh_CN.md",
+    "status": "verified",
+    "sha": "59e5001dcced54052355580223362bfe94922000"
+  },
+  {
+    "kind": "document",
+    "url": "https://github.com/openclaw/openclaw/blob/main/docs/tools/creating-skills.md",
+    "status": "verified",
+    "sha": "417ed0000f34c8e407c7ca57fef7c701e13c5e0a"
+  },
+  {
+    "kind": "document",
+    "url": "https://github.com/openclaw/openclaw/blob/main/docs/tools/custodian-skills.md",
+    "status": "verified",
+    "sha": "241fe685d2df912688fa694d6dec19f8bd5c9c1a"
+  },
+  {
+    "kind": "document",
+    "url": "https://github.com/openclaw/openclaw/blob/main/docs/tools/plugin.md",
+    "status": "verified",
+    "sha": "33b1398d7580853e2246f3a831644629e695d3d7"
+  },
+  {
+    "kind": "document",
+    "url": "https://github.com/openclaw/openclaw/blob/main/docs/tools/skill-workshop.md",
+    "status": "verified",
+    "sha": "e26dd71e9b3fdedb16b669c91510f7cef0892177"
+  },
+  {
+    "kind": "document",
+    "url": "https://github.com/openclaw/openclaw/tree/main/docs/tools/skill-workshop",
+    "status": "verified",
+    "sha": "6635bd27f8af7614b010928cb0de3a756f4eccec"
+  },
+  {
+    "kind": "document",
+    "url": "https://github.com/openclaw/openclaw/blob/main/docs/tools/skills-config.md",
+    "status": "verified",
+    "sha": "c1d48a6878a8d6afc180f18b58e3e880617e3a93"
+  },
+  {
+    "kind": "document",
+    "url": "https://github.com/openclaw/openclaw/blob/main/docs/tools/skills.md",
+    "status": "verified",
+    "sha": "4e9158574c01f7189e141648162a0479782cf6bd"
+  }
+]

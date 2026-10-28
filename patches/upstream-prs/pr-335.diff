@@ -1,0 +1,279 @@
+diff --git a/src/api/session-recovery.ts b/src/api/session-recovery.ts
+new file mode 100644
+index 0000000..b76222c
+--- /dev/null
++++ b/src/api/session-recovery.ts
+@@ -0,0 +1,69 @@
++import { notifyStart } from "./api.js";
++import { triggerWeixinChannelReload } from "../auth/accounts.js";
++import { logger } from "../util/logger.js";
++
++/**
++ * Local patch (2026-10-03): self-healing for degraded Weixin bot sessions.
++ *
++ * Background: `sendMessage ret=-2 errmsg=prepare failed` has two distinct causes:
++ *   1. Stale context_token  -> fixed by retrying without the token (send.js fallback)
++ *   2. Degraded server-side bot session (long-poll went unhealthy) -> retrying
++ *      without the token ALSO fails; only re-establishing the session helps.
++ *
++ * This module implements cause-2 recovery:
++ *   1. notifyStart  — re-assert this client to the Weixin server (lightweight)
++ *   2. triggerWeixinChannelReload — bump channelConfigUpdatedAt so the gateway
++ *      hot-reloads the channel: stopAccount (notifyStop) + startAccount
++ *      (notifyStart + fresh long-poll loop). This is the same reload path used
++ *      after QR login, so it is a supported, safe operation.
++ *
++ * A per-account cooldown prevents a storm of failing sends from triggering
++ * repeated reloads.
++ */
++const RECOVERY_COOLDOWN_MS = 60_000;
++const lastRecovery = new Map<string, number>();
++
++export type RecoverWeixinSessionParams = {
++  accountId: string;
++  baseUrl: string;
++  token?: string;
++};
++
++/**
++ * Attempt to recover a degraded Weixin session for `accountId`.
++ * Returns true when a recovery was triggered, false when skipped (cooldown)
++ * or when the recovery itself failed.
++ */
++export async function recoverWeixinSession(params: RecoverWeixinSessionParams): Promise<boolean> {
++  const { accountId, baseUrl, token } = params;
++  const now = Date.now();
++  const last = lastRecovery.get(accountId) ?? 0;
++  if (now - last < RECOVERY_COOLDOWN_MS) {
++    const remainingS = Math.ceil((RECOVERY_COOLDOWN_MS - (now - last)) / 1000);
++    logger.info(
++      `session-recovery: cooldown active for ${accountId} (${remainingS}s remaining), skipping`,
++    );
++    return false;
++  }
++  lastRecovery.set(accountId, now);
++  const aLog = logger.withAccount(accountId);
++  aLog.warn(`session-recovery: degraded session detected, triggering recovery for ${accountId}`);
++  try {
++    // Step 1: re-assert client to server (may fix mild degradation on its own).
++    try {
++      await notifyStart({ baseUrl, token });
++      aLog.info("session-recovery: notifyStart succeeded");
++    } catch (err) {
++      aLog.warn(`session-recovery: notifyStart failed (non-fatal): ${String(err)}`);
++    }
++    // Step 2: force channel reload -> gateway stops and restarts the account,
++    // establishing a fresh long-poll session.
++    await triggerWeixinChannelReload();
++    aLog.info("session-recovery: channel reload triggered");
++    return true;
++  } catch (err) {
++    aLog.error(`session-recovery: failed: ${String(err)}`);
++    lastRecovery.delete(accountId); // allow an immediate retry next time
++    return false;
++  }
++}
+diff --git a/src/messaging/send.ts b/src/messaging/send.ts
+index 0aaea1b..3ec4928 100644
+--- a/src/messaging/send.ts
++++ b/src/messaging/send.ts
+@@ -2,6 +2,7 @@ import type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
+ 
+ import { sendMessage as sendMessageApi } from "../api/api.js";
+ import type { WeixinApiOptions } from "../api/api.js";
++import { recoverWeixinSession } from "../api/session-recovery.js";
+ import { logger } from "../util/logger.js";
+ import { generateId } from "../util/random.js";
+ import type { MessageItem, SendMessageReq } from "../api/types.js";
+@@ -53,6 +54,81 @@ function generateClientId(): string {
+   return generateId("openclaw-weixin");
+ }
+ 
++/**
++ * Detect whether a send failure is caused by a stale/invalid context_token.
++ * Weixin rejects the whole request with `ret=-2 errmsg=prepare failed` when the
++ * echoed context_token has expired server-side. context_token is OPTIONAL per the
++ * Weixin API (verified: a send without it succeeds), so on this failure we can
++ * safely retry without it instead of dropping the message.
++ */
++function isStaleContextTokenError(err: unknown): boolean {
++  const s = String((err as { message?: unknown })?.message ?? err ?? "");
++  return /prepare failed/i.test(s) || /ret=-2\b/.test(s);
++}
++
++/**
++ * Send a request, and if it fails due to a stale context_token, retry once with
++ * the context_token stripped from the body. Returns the (possibly retried) response.
++ *
++ * Local patch (2026-10-03): if the no-token retry ALSO fails with the same
++ * `prepare failed` error, the server-side bot session itself is degraded
++ * (not just the context_token). In that case trigger session recovery
++ * (notifyStart + channel reload) so the next delivery-recovery retry — or the
++ * next message — goes out on a fresh session. The error is still rethrown so
++ * the caller's delivery-recovery path keeps the message for retry.
++ */
++async function sendWithStaleTokenFallback(
++  sendParams: WeixinApiOptions & { body: SendMessageReq },
++  label: string,
++  accountId?: string,
++): Promise<Awaited<ReturnType<typeof sendMessageApi>>> {
++  try {
++    return await sendMessageApi(sendParams);
++  } catch (err) {
++    if (isStaleContextTokenError(err) && sendParams.body?.msg?.context_token) {
++      logger.warn(
++        `${label}: stale context_token (ret=-2 prepare failed), retrying without context_token`,
++      );
++      const { context_token: _drop, ...restMsg } = sendParams.body.msg;
++      const retryBody = { ...sendParams.body, msg: restMsg };
++      try {
++        return await sendMessageApi({ ...sendParams, body: retryBody });
++      } catch (retryErr) {
++        if (isStaleContextTokenError(retryErr)) {
++          logger.error(
++            `${label}: retry without context_token also failed (${String(retryErr)}); session appears degraded, triggering session recovery`,
++          );
++          if (accountId) {
++            await recoverWeixinSession({
++              accountId,
++              baseUrl: sendParams.baseUrl,
++              token: sendParams.token,
++            });
++          }
++        }
++        throw retryErr;
++      }
++    }
++    // Local patch (2026-10-07): a `prepare failed` on a send WITHOUT a
++    // context_token (e.g. cron direct delivery) means the server-side bot
++    // session is degraded — the no-token retry branch above never runs for
++    // these, so recovery was never triggered. Trigger it here.
++    if (isStaleContextTokenError(err) && !sendParams.body?.msg?.context_token) {
++      logger.error(
++        `${label}: prepare failed without context_token; session appears degraded, triggering session recovery`,
++      );
++      if (accountId) {
++        await recoverWeixinSession({
++          accountId,
++          baseUrl: sendParams.baseUrl,
++          token: sendParams.token,
++        });
++      }
++    }
++    throw err;
++  }
++}
++
+ /** Build a SendMessageReq containing a single text message. */
+ function buildTextMessageReq(params: {
+   to: string;
+@@ -118,12 +194,16 @@ export async function sendMessageWeixin(params: {
+     clientId,
+   });
+   try {
+-    const response = await sendMessageApi({
+-      baseUrl: opts.baseUrl,
+-      token: opts.token,
+-      timeoutMs: opts.timeoutMs,
+-      body: req,
+-    });
++    const response = await sendWithStaleTokenFallback(
++      {
++        baseUrl: opts.baseUrl,
++        token: opts.token,
++        timeoutMs: opts.timeoutMs,
++        body: req,
++      },
++      "sendMessageWeixin",
++      opts.accountId,
++    );
+     const serverMessageId = response?.message_id;
+     await cacheOutboundMessage({ opts, to, serverMessageId, body: text });
+     return {
+@@ -164,12 +244,16 @@ export async function sendMessageItemWeixin(params: {
+     },
+   };
+   try {
+-    const response = await sendMessageApi({
+-      baseUrl: opts.baseUrl,
+-      token: opts.token,
+-      timeoutMs: opts.timeoutMs,
+-      body: req,
+-    });
++    const response = await sendWithStaleTokenFallback(
++      {
++        baseUrl: opts.baseUrl,
++        token: opts.token,
++        timeoutMs: opts.timeoutMs,
++        body: req,
++      },
++      params.label ?? "sendMessageItemWeixin",
++      opts.accountId,
++    );
+     const serverMessageId = response?.message_id;
+     const itemText = item.type === MessageItemType.TEXT ? (item.text_item?.text ?? "") : "";
+     if (itemText) await cacheOutboundMessage({ opts, to, serverMessageId, body: itemText });
+@@ -225,12 +309,16 @@ async function sendMediaItems(params: {
+       },
+     };
+     try {
+-      const response = await sendMessageApi({
+-        baseUrl: opts.baseUrl,
+-        token: opts.token,
+-        timeoutMs: opts.timeoutMs,
+-        body: req,
+-      });
++      const response = await sendWithStaleTokenFallback(
++        {
++          baseUrl: opts.baseUrl,
++          token: opts.token,
++          timeoutMs: opts.timeoutMs,
++          body: req,
++        },
++        label,
++        opts.accountId,
++      );
+       lastServerMessageId = response?.message_id;
+       if (item.type === MessageItemType.TEXT) {
+         await cacheOutboundMessage({
+diff --git a/src/monitor/monitor.ts b/src/monitor/monitor.ts
+index d60f651..97d2cd0 100644
+--- a/src/monitor/monitor.ts
++++ b/src/monitor/monitor.ts
+@@ -9,11 +9,17 @@ import { getSyncBufFilePath, loadGetUpdatesBuf, saveGetUpdatesBuf } from "../sto
+ import { logger } from "../util/logger.js";
+ import type { Logger } from "../util/logger.js";
+ import { redactBody } from "../util/redact.js";
++import { recoverWeixinSession } from "../api/session-recovery.js";
+ 
+ const DEFAULT_LONG_POLL_TIMEOUT_MS = 35_000;
+ const MAX_CONSECUTIVE_FAILURES = 3;
+ const BACKOFF_DELAY_MS = 30_000;
+ const RETRY_DELAY_MS = 2_000;
++// Local patch (2026-10-03): after this many consecutive network-level
++// getUpdates failures, the long-poll session is likely degraded server-side.
++// Trigger session recovery (notifyStart + channel reload) proactively instead
++// of only backing off, so outbound sends stop failing with `prepare failed`.
++const MAX_NETWORK_FAILURES_BEFORE_RECOVERY = 5;
+ 
+ export type MonitorWeixinOpts = {
+   baseUrl: string;
+@@ -194,7 +200,17 @@ export async function monitorWeixinProvider(opts: MonitorWeixinOpts): Promise<vo
+       aLog.error(
+         `getUpdates error: ${String(err)}, type=${classified.type} code=${classified.code ?? "none"}, stack=${(err as Error).stack}`,
+       );
+-      if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
++      if (consecutiveFailures >= MAX_NETWORK_FAILURES_BEFORE_RECOVERY) {
++        errLog(
++          `weixin getUpdates: ${consecutiveFailures} consecutive network failures, triggering session recovery`,
++        );
++        aLog.error(
++          `getUpdates: ${consecutiveFailures} consecutive network failures, triggering session recovery`,
++        );
++        await recoverWeixinSession({ accountId, baseUrl, token });
++        consecutiveFailures = 0;
++        await sleep(BACKOFF_DELAY_MS, abortSignal);
++      } else if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+         errLog(
+           `weixin getUpdates: ${MAX_CONSECUTIVE_FAILURES} consecutive failures, backing off 30s`,
+         );

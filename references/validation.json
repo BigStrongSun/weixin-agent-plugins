@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "checkedAt": "2026-10-28T10:12:41.906Z",
+  "files": 31,
+  "jsonCount": 11,
+  "relativeLinks": 26,
+  "patchesParsed": 5,
+  "hashesChecked": 30,
+  "checks": [
+    "json",
+    "relative-links",
+    "patch-parse",
+    "secret-patterns",
+    "cooldown-variants",
+    "pr-provenance",
+    "javascript-syntax",
+    "sha256"
+  ],
+  "deployment": false,
+  "liveMessaging": false,
+  "errors": []
+}

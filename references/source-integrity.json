@@ -1,0 +1,47 @@
+{
+  "checkedAt": "2026-10-28T10:12:41.714Z",
+  "crossChannelPlugin": {
+    "version": "0.2.0",
+    "origin": "pre-existing user-authored local plugin snapshot; no prior GitHub origin verified",
+    "exactFiles": [
+      {
+        "file": "components/cross-channel-notify/src/index.ts",
+        "sha256": "5987fd508e58cbffec8764717130ee34b10e13392c687ced7c7b045a59428df0",
+        "byteIdenticalToExistingSource": true
+      },
+      {
+        "file": "components/cross-channel-notify/dist/index.js",
+        "sha256": "33e7fb626ea42f9172f3e8ce6850dfe8699cf137d8ca0e6dccb1b6803aebd295",
+        "byteIdenticalToExistingSource": true
+      },
+      {
+        "file": "components/cross-channel-notify/package.json",
+        "sha256": "4eb578fb95b2b6ae946c195871a639312b9224a2166cf3cb1af8c22cee3dcbd7",
+        "byteIdenticalToExistingSource": true
+      },
+      {
+        "file": "components/cross-channel-notify/package-lock.json",
+        "sha256": "63d98678376a54648197403e27e617658e7a5ee8903a9aac5e7a3748db176951",
+        "byteIdenticalToExistingSource": true
+      },
+      {
+        "file": "components/cross-channel-notify/tsconfig.json",
+        "sha256": "664af60b52895447157832954f34717a7ad22832e788b320e2de4fe0514544bb",
+        "byteIdenticalToExistingSource": true
+      },
+      {
+        "file": "components/cross-channel-notify/openclaw.plugin.json",
+        "sha256": "caad7f5d279053befb89673d8c39804168aec3baabc786d26320330a77371172",
+        "byteIdenticalToExistingSource": true
+      }
+    ]
+  },
+  "selfhealPublished": {
+    "repository": "https://github.com/BigStrongSun/openclaw-weixin-session-selfheal",
+    "commit": "3aab7d5d7e7865bc97fb905a845975ae3988c5c7"
+  },
+  "selfhealLocalVariant": {
+    "published": false,
+    "change": "RECOVERY_COOLDOWN_MS: 60_000 -> 900_000"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "cross-channel-notify",
+  "name": "Cross Channel Notify",
+  "description": "Push a short notification to a configured channel (e.g. WeChat) when a message arrives on any other channel.",
+  "version": "0.2.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "notifyChannel": {
+        "type": "string",
+        "description": "Channel to deliver notifications to. Default: openclaw-weixin"
+      },
+      "notifyTo": {
+        "type": "string",
+        "description": "Recipient id on the notify channel (e.g. WeChat id). Required."
+      },
+      "notifyAccountId": {
+        "type": "string",
+        "description": "Account id on the notify channel (optional)."
+      },
+      "skipChannels": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Channels whose inbound messages should be ignored. Default: [notifyChannel]."
+      },
+      "maxContentLength": {
+        "type": "number",
+        "description": "Max chars of inbound content included in the notification. Default: 120."
+      },
+      "cooldownMs": {
+        "type": "number",
+        "description": "Min ms between notifications for the same channel+sender. Default: 30000."
+      }
+    },
+    "additionalProperties": false
+  },
+  "activation": {
+    "onStartup": true
+  }
+}
